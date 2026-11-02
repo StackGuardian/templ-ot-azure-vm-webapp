@@ -1,0 +1,24 @@
+#cloud-config
+# Installs nginx and writes a demo page that shows which instance answered.
+package_update: true
+packages:
+  - nginx
+write_files:
+  - path: /etc/nginx/conf.d/hardening.conf
+    content: |
+      server_tokens off;
+runcmd:
+  - |
+    cat > /var/www/html/index.html <<HTML
+    <!doctype html>
+    <html lang="en">
+    <head><meta charset="utf-8"><title>Web app demo</title></head>
+    <body>
+      <h1>Web app demo</h1>
+      <p>Served by instance $(hostname).</p>
+      <!-- demo-marker: vm-webapp-ok -->
+    </body>
+    </html>
+    HTML
+  - systemctl enable --now nginx
+  - systemctl reload nginx

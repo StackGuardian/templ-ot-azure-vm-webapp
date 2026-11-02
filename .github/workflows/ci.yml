@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: opentofu/setup-opentofu@v2
+
+      - name: Format
+        run: tofu fmt -check -recursive
+
+      - name: Validate
+        run: |
+          tofu init -backend=false
+          tofu validate
+
+      - name: Unit tests
+        run: tofu test -test-directory=tests/unit
+
+      - uses: terraform-linters/setup-tflint@v6
+
+      - name: Lint
+        run: |
+          tflint --init
+          tflint
+
+      - name: Security scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          skip_path: tests
