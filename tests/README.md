@@ -1,6 +1,6 @@
 # Tests
 
-Tests use the built-in OpenTofu test framework (`tofu test`, OpenTofu 1.8 or later).
+Tests use the built-in OpenTofu test framework (`tofu test`, OpenTofu 1.9 or later).
 
 | Level | Folder | What it does | Cost | When it runs |
 |---|---|---|---|---|
