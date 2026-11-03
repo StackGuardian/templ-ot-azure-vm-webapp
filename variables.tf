@@ -42,6 +42,11 @@ variable "instance_count" {
   description = "Number of scale set instances"
   type        = number
   default     = 2
+
+  validation {
+    condition     = var.instance_count >= 1
+    error_message = "At least one instance is needed."
+  }
 }
 
 variable "admin_username" {
@@ -53,6 +58,11 @@ variable "admin_username" {
 variable "ssh_public_key" {
   description = "SSH public key for the admin user. Password login is disabled and no SSH port is open."
   type        = string
+
+  validation {
+    condition     = can(regex("^(ssh-(rsa|ed25519)|ecdsa-sha2-nistp[0-9]+) ", var.ssh_public_key))
+    error_message = "Must be an OpenSSH public key, for example ssh-ed25519 AAAA..."
+  }
 }
 
 variable "allowed_http_cidrs" {
@@ -76,4 +86,9 @@ variable "log_retention_days" {
   description = "Retention of the logs in Log Analytics"
   type        = number
   default     = 90
+
+  validation {
+    condition     = var.log_retention_days >= 30 && var.log_retention_days <= 730
+    error_message = "Log Analytics retention must be between 30 and 730 days."
+  }
 }

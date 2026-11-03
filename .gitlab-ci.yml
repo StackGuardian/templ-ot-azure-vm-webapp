@@ -1,0 +1,126 @@
+# Pipelines:
+# - Every push: lint (format check and tflint).
+# - Merge request into development or main: lint, validate, security scan and unit tests.
+# - Tag: lint, validate, security scan, unit tests, integration tests and a release.
+#   Integration tests run only when the AZURE_* CI/CD variables are set.
+
+variables:
+  TOFU_VERSION: "1.13.2"
+  TFLINT_VERSION: "v0.65.0"
+  CHECKOV_VERSION: "3.4.3"
+  GLAB_VERSION: "v1.127.0"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_TAG
+    # A branch with an open merge request already gets a merge request pipeline.
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - lint
+  - validate
+  - test
+  - integration
+  - release
+
+.full_checks:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^(development|main)$/
+    - if: $CI_COMMIT_TAG
+
+.tofu:
+  image:
+    name: ghcr.io/opentofu/opentofu:$TOFU_VERSION
+    entrypoint: [""]
+
+fmt:
+  extends: .tofu
+  stage: lint
+  script:
+    - tofu fmt -check -recursive -diff
+
+tflint:
+  stage: lint
+  image:
+    name: ghcr.io/terraform-linters/tflint:$TFLINT_VERSION
+    entrypoint: [""]
+  cache:
+    key: tflint-plugins
+    paths:
+      - .tflint.d/
+  variables:
+    TFLINT_PLUGIN_DIR: $CI_PROJECT_DIR/.tflint.d
+  script:
+    - tflint --init
+    - tflint --format=compact
+
+validate:
+  extends: [.tofu, .full_checks]
+  stage: validate
+  script:
+    - tofu init -backend=false -input=false -test-directory=tests/integration
+    - tofu validate
+    - tofu validate -test-directory=tests/integration
+
+checkov:
+  extends: .full_checks
+  stage: validate
+  image:
+    name: bridgecrew/checkov:$CHECKOV_VERSION
+    entrypoint: [""]
+  script:
+    - checkov --directory . --framework terraform --skip-path tests --compact --quiet
+
+unit-tests:
+  extends: [.tofu, .full_checks]
+  stage: test
+  parallel:
+    matrix:
+      # Lowest supported version (see required_version) and the current release.
+      - TOFU_VERSION: ["1.8.0", "1.13.2"]
+  script:
+    - tofu init -backend=false -input=false
+    - tofu test -test-directory=tests/unit
+
+integration-tests:
+  extends: .tofu
+  stage: integration
+  rules:
+    - if: $CI_COMMIT_TAG && $AZURE_CLIENT_ID && $AZURE_TENANT_ID && $AZURE_SUBSCRIPTION_ID
+  resource_group: integration
+  timeout: 1h
+  id_tokens:
+    AZURE_ID_TOKEN:
+      aud: api://AzureADTokenExchange
+  script:
+    - export ARM_USE_OIDC=true ARM_OIDC_TOKEN="$AZURE_ID_TOKEN"
+    - export ARM_CLIENT_ID="$AZURE_CLIENT_ID" ARM_TENANT_ID="$AZURE_TENANT_ID" ARM_SUBSCRIPTION_ID="$AZURE_SUBSCRIPTION_ID"
+    - tofu init -input=false -test-directory=tests/integration
+    - tofu test -test-directory=tests/integration
+
+integration-skipped:
+  stage: integration
+  image: alpine:3.22
+  rules:
+    - if: $CI_COMMIT_TAG && $AZURE_CLIENT_ID && $AZURE_TENANT_ID && $AZURE_SUBSCRIPTION_ID
+      when: never
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "Integration tests skipped. Set AZURE_CLIENT_ID, AZURE_TENANT_ID and AZURE_SUBSCRIPTION_ID to run them."
+
+release:
+  stage: release
+  image:
+    name: registry.gitlab.com/gitlab-org/cli:$GLAB_VERSION
+    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "Creating release $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: $CI_COMMIT_TAG
+    description: "Release $CI_COMMIT_TAG of $CI_PROJECT_NAME."

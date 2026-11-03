@@ -4,8 +4,8 @@ Tests use the built-in OpenTofu test framework (`tofu test`, OpenTofu 1.8 or lat
 
 | Level | Folder | What it does | Cost | When it runs |
 |---|---|---|---|---|
-| Unit | `tests/unit` | Plan only with mocked providers. Checks configuration and security settings. | None | Every push and pull request |
-| Integration | `tests/integration` | Deploys real resources, checks them, destroys them. | Cloud cost while running | Manually (GitHub Actions `integration` workflow) |
+| Unit | `tests/unit` | Plan only with mocked providers. Checks configuration and security settings. | None | Merge requests into `development` or `main`, and tags |
+| Integration | `tests/integration` | Deploys real resources, checks them, destroys them. | Cloud cost while running | Tags, when cloud credentials are set (`integration-tests` job) |
 
 ## Run locally
 
