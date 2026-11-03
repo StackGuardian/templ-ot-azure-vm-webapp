@@ -54,6 +54,22 @@ tflint:
   variables:
     TFLINT_PLUGIN_DIR: $CI_PROJECT_DIR/.tflint.d
   script:
+    # Fetch rule set plugins from the release page: tflint --init uses the GitHub API,
+    # which rate-limits unauthenticated requests per IP.
+    - |
+      awk -F'"' '/version *=/{v=$2} /source *=/{print $2" "v}' .tflint.hcl | while read -r source version; do
+        name="${source##*/}"
+        dir="$TFLINT_PLUGIN_DIR/$source/$version"
+        [ -x "$dir/$name" ] && continue
+        url="https://$source/releases/download/v$version"
+        mkdir -p "$dir" && cd "$dir"
+        wget -q "$url/${name}_linux_amd64.zip"
+        wget -q "$url/checksums.txt"
+        grep " ${name}_linux_amd64.zip\$" checksums.txt | sha256sum -c -
+        unzip -q "${name}_linux_amd64.zip"
+        rm -f "${name}_linux_amd64.zip" checksums.txt
+        cd "$CI_PROJECT_DIR"
+      done
     - tflint --init
     - tflint --format=compact
 
