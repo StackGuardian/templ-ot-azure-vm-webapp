@@ -73,7 +73,6 @@ There is no SSH access from the internet. For shell access, add Azure Bastion (n
 | `name_prefix` | Prefix for all resource names | `"demo"` |
 | `location` | Azure location | `"germanywestcentral"` |
 | `ssh_public_key` | SSH public key for the admin user (required) | none |
-| `vnet_cidr` | Address space of the VNet | `"10.0.0.0/16"` |
 | `vm_size` | VM size, must support Trusted Launch | `"Standard_B2s_v2"` |
 | `advanced_settings` | Object with the settings below, all optional | `{}` |
 
@@ -81,6 +80,7 @@ There is no SSH access from the internet. For shell access, add Azure Bastion (n
 
 | Name | Description | Default |
 |---|---|---|
+| `vnet_cidr` | Address space of the VNet | `"10.0.0.0/16"` |
 | `instance_count` | Number of instances | `1` |
 | `admin_username` | Admin user | `"azureuser"` |
 | `allowed_http_cidrs` | CIDRs allowed to reach the Application Gateway | `["0.0.0.0/0"]` |

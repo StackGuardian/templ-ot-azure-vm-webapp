@@ -15,17 +15,6 @@ variable "location" {
   default     = "germanywestcentral"
 }
 
-variable "vnet_cidr" {
-  description = "Address space of the VNet"
-  type        = string
-  default     = "10.0.0.0/16"
-
-  validation {
-    condition     = can(cidrnetmask(var.vnet_cidr))
-    error_message = "Must be a valid IPv4 CIDR block."
-  }
-}
-
 variable "vm_size" {
   description = "VM size of the scale set instances. Must support Trusted Launch (Gen2)."
   type        = string
@@ -46,6 +35,7 @@ variable "ssh_public_key" {
 variable "advanced_settings" {
   description = "Settings most deployments keep at their defaults"
   type = object({
+    vnet_cidr                  = optional(string, "10.0.0.0/16")       # Address space of the VNet
     instance_count             = optional(number, 1)                   # Number of scale set instances
     admin_username             = optional(string, "azureuser")         # Admin user on the instances
     allowed_http_cidrs         = optional(list(string), ["0.0.0.0/0"]) # IPv4 CIDRs allowed to reach the Application Gateway, public by default
@@ -55,6 +45,11 @@ variable "advanced_settings" {
   })
   default  = {}
   nullable = false
+
+  validation {
+    condition     = can(cidrnetmask(var.advanced_settings.vnet_cidr))
+    error_message = "vnet_cidr must be a valid IPv4 CIDR block."
+  }
 
   validation {
     condition     = var.advanced_settings.instance_count >= 1
