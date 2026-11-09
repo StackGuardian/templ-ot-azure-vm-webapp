@@ -89,8 +89,10 @@ run "custom_tags_are_merged" {
   command = plan
 
   variables {
-    tags = {
-      Owner = "tester"
+    advanced_settings = {
+      tags = {
+        Owner = "tester"
+      }
     }
   }
 
@@ -177,7 +179,9 @@ run "appgw_allows_only_given_cidrs" {
   command = apply
 
   variables {
-    allowed_http_cidrs = ["203.0.113.0/24"]
+    advanced_settings = {
+      allowed_http_cidrs = ["203.0.113.0/24"]
+    }
   }
 
   assert {

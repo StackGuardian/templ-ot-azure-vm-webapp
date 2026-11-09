@@ -15,12 +15,6 @@ variable "location" {
   default     = "germanywestcentral"
 }
 
-variable "tags" {
-  description = "Additional tags for all resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "vnet_cidr" {
   description = "Address space of the VNet"
   type        = string
@@ -38,23 +32,6 @@ variable "vm_size" {
   default     = "Standard_B2s_v2"
 }
 
-variable "instance_count" {
-  description = "Number of scale set instances"
-  type        = number
-  default     = 2
-
-  validation {
-    condition     = var.instance_count >= 1
-    error_message = "At least one instance is needed."
-  }
-}
-
-variable "admin_username" {
-  description = "Admin user on the instances"
-  type        = string
-  default     = "azureuser"
-}
-
 variable "ssh_public_key" {
   description = "SSH public key for the admin user. Password login is disabled and no SSH port is open."
   type        = string
@@ -65,30 +42,32 @@ variable "ssh_public_key" {
   }
 }
 
-variable "allowed_http_cidrs" {
-  description = "IPv4 CIDRs allowed to reach the Application Gateway. The web app is public by default."
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
+# Grouped so the StackGuardian form can show them in one "Advanced Settings" section.
+variable "advanced_settings" {
+  description = "Settings most deployments keep at their defaults"
+  type = object({
+    instance_count             = optional(number, 2)                   # Number of scale set instances
+    admin_username             = optional(string, "azureuser")         # Admin user on the instances
+    allowed_http_cidrs         = optional(list(string), ["0.0.0.0/0"]) # IPv4 CIDRs allowed to reach the Application Gateway, public by default
+    encryption_at_host_enabled = optional(bool, false)                 # Needs the EncryptionAtHost feature registered in the subscription
+    log_retention_days         = optional(number, 90)                  # Retention of the logs in Log Analytics
+    tags                       = optional(map(string), {})             # Additional tags for all resources
+  })
+  default  = {}
+  nullable = false
 
   validation {
-    condition     = alltrue([for c in var.allowed_http_cidrs : can(cidrnetmask(c))])
-    error_message = "All entries must be valid IPv4 CIDR blocks."
+    condition     = var.advanced_settings.instance_count >= 1
+    error_message = "At least one instance is needed."
   }
-}
-
-variable "encryption_at_host_enabled" {
-  description = "Encrypt temp disk and caches on the host. Needs the EncryptionAtHost feature registered in the subscription."
-  type        = bool
-  default     = false
-}
-
-variable "log_retention_days" {
-  description = "Retention of the logs in Log Analytics"
-  type        = number
-  default     = 90
 
   validation {
-    condition     = var.log_retention_days >= 30 && var.log_retention_days <= 730
+    condition     = alltrue([for c in var.advanced_settings.allowed_http_cidrs : can(cidrnetmask(c))])
+    error_message = "All entries in allowed_http_cidrs must be valid IPv4 CIDR blocks."
+  }
+
+  validation {
+    condition     = var.advanced_settings.log_retention_days >= 30 && var.advanced_settings.log_retention_days <= 730
     error_message = "Log Analytics retention must be between 30 and 730 days."
   }
 }

@@ -1,10 +1,12 @@
 name_prefix = "demo"
 location = "germanywestcentral"
 
-tags = {
-  Owner = "your-name"
-}
 ssh_public_key = "ssh-ed25519 AAAA... you@example.com"
 
-# Limit access to the web app, public by default.
-# allowed_http_cidrs = ["203.0.113.0/24"]
+advanced_settings = {
+  tags = {
+    Owner = "your-name"
+  }
+  # Limit access to the web app, public by default.
+  # allowed_http_cidrs = ["203.0.113.0/24"]
+}

@@ -4,19 +4,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "web" {
   location                        = azurerm_resource_group.this.location
   resource_group_name             = azurerm_resource_group.this.name
   sku                             = var.vm_size
-  instances                       = var.instance_count
-  admin_username                  = var.admin_username
+  instances                       = var.advanced_settings.instance_count
+  admin_username                  = var.advanced_settings.admin_username
   disable_password_authentication = true
   secure_boot_enabled             = true
   vtpm_enabled                    = true
-  encryption_at_host_enabled      = var.encryption_at_host_enabled
+  encryption_at_host_enabled      = var.advanced_settings.encryption_at_host_enabled
   extension_operations_enabled    = false
   custom_data                     = filebase64("${path.module}/cloud-init.yaml")
   upgrade_mode                    = "Manual"
   tags                            = local.tags
 
   admin_ssh_key {
-    username   = var.admin_username
+    username   = var.advanced_settings.admin_username
     public_key = var.ssh_public_key
   }
 

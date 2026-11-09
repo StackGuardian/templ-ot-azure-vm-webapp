@@ -72,15 +72,21 @@ There is no SSH access from the internet. For shell access, add Azure Bastion (n
 |---|---|---|
 | `name_prefix` | Prefix for all resource names | `"demo"` |
 | `location` | Azure location | `"germanywestcentral"` |
-| `tags` | Additional tags for all resources | `{}` |
 | `ssh_public_key` | SSH public key for the admin user (required) | none |
 | `vnet_cidr` | Address space of the VNet | `"10.0.0.0/16"` |
 | `vm_size` | VM size, must support Trusted Launch | `"Standard_B2s_v2"` |
+| `advanced_settings` | Object with the settings below, all optional | `{}` |
+
+`advanced_settings` attributes (shown as "Advanced Settings" in the StackGuardian form):
+
+| Name | Description | Default |
+|---|---|---|
 | `instance_count` | Number of instances | `2` |
 | `admin_username` | Admin user | `"azureuser"` |
 | `allowed_http_cidrs` | CIDRs allowed to reach the Application Gateway | `["0.0.0.0/0"]` |
 | `encryption_at_host_enabled` | Encryption at host (needs the subscription feature) | `false` |
 | `log_retention_days` | Log retention in Log Analytics | `90` |
+| `tags` | Additional tags for all resources | `{}` |
 
 ## Outputs
 

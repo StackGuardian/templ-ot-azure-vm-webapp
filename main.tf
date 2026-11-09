@@ -6,7 +6,7 @@ locals {
       ManagedBy   = "opentofu"
       Repository  = "tf-azure-vm-webapp"
     },
-    var.tags,
+    var.advanced_settings.tags,
   )
 }
 

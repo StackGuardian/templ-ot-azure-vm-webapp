@@ -58,7 +58,7 @@ resource "azurerm_network_security_group" "appgw" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_address_prefixes    = var.allowed_http_cidrs
+    source_address_prefixes    = var.advanced_settings.allowed_http_cidrs
     source_port_range          = "*"
     destination_address_prefix = "*"
     destination_port_range     = "80"
