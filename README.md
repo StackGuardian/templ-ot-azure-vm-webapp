@@ -27,7 +27,7 @@ flowchart LR
 - VNet with a subnet for Application Gateway and a subnet for the scale set, each with an NSG
 - NAT gateway for outbound traffic of the instances (package installs)
 - Application Gateway v2 (Standard_v2) with a public IP and DNS label, health probe on `/`
-- Linux VM Scale Set (Ubuntu 24.04 LTS, Trusted Launch, nginx via `cloud-init.yaml`), 2 instances
+- Linux VM Scale Set (Ubuntu 24.04 LTS, Trusted Launch, nginx via `cloud-init.yaml`), 1 instance by default
 - Log Analytics workspace with Application Gateway access logs
 
 ## Security
@@ -81,7 +81,7 @@ There is no SSH access from the internet. For shell access, add Azure Bastion (n
 
 | Name | Description | Default |
 |---|---|---|
-| `instance_count` | Number of instances | `2` |
+| `instance_count` | Number of instances | `1` |
 | `admin_username` | Admin user | `"azureuser"` |
 | `allowed_http_cidrs` | CIDRs allowed to reach the Application Gateway | `["0.0.0.0/0"]` |
 | `encryption_at_host_enabled` | Encryption at host (needs the subscription feature) | `false` |

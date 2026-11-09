@@ -46,7 +46,7 @@ variable "ssh_public_key" {
 variable "advanced_settings" {
   description = "Settings most deployments keep at their defaults"
   type = object({
-    instance_count             = optional(number, 2)                   # Number of scale set instances
+    instance_count             = optional(number, 1)                   # Number of scale set instances
     admin_username             = optional(string, "azureuser")         # Admin user on the instances
     allowed_http_cidrs         = optional(list(string), ["0.0.0.0/0"]) # IPv4 CIDRs allowed to reach the Application Gateway, public by default
     encryption_at_host_enabled = optional(bool, false)                 # Needs the EncryptionAtHost feature registered in the subscription
