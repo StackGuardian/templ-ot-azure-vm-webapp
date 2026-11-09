@@ -1,0 +1,141 @@
+# Same pipeline as .gitlab-ci.yml:
+# - Every push: lint (format check and tflint).
+# - Pull request into development or main: lint, validate, security scan and unit tests.
+# - Tag: lint, validate, security scan, unit tests, integration tests and a release.
+#   Integration tests run only when the repository variables AZURE_CLIENT_ID, AZURE_TENANT_ID and AZURE_SUBSCRIPTION_ID are set.
+
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["**"]
+  pull_request:
+    branches: [development, main]
+
+permissions:
+  contents: read
+
+env:
+  TOFU_VERSION: "1.13.2"
+  TFLINT_VERSION: "v0.65.0"
+  CHECKOV_VERSION: "3.4.3"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: opentofu/setup-opentofu@v2.0.2
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+      - run: tofu fmt -check -recursive -diff
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/cache@v6.1.0
+        with:
+          path: ~/.tflint.d/plugins
+          key: tflint-${{ hashFiles('.tflint.hcl') }}
+      - uses: terraform-linters/setup-tflint@v6.3.2
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+      # The token lifts the GitHub API rate limit for plugin downloads.
+      - run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: tflint --format=compact
+
+  validate:
+    needs: [fmt, tflint]
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: opentofu/setup-opentofu@v2.0.2
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+      - run: tofu init -backend=false -input=false -test-directory=tests/integration
+      - run: tofu validate
+      - run: tofu validate -test-directory=tests/integration
+
+  checkov:
+    needs: [fmt, tflint]
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: >-
+          docker run --rm -v "$PWD:/src" -w /src bridgecrew/checkov:$CHECKOV_VERSION
+          --directory . --framework terraform --skip-path tests --compact --quiet
+
+  unit-tests:
+    needs: [validate, checkov]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Lowest supported version (see required_version) and the current release.
+        tofu_version: ["1.9.0", "1.13.2"]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: opentofu/setup-opentofu@v2.0.2
+        with:
+          tofu_version: ${{ matrix.tofu_version }}
+          tofu_wrapper: false
+      - run: tofu init -backend=false -input=false
+      - run: tofu test -test-directory=tests/unit
+
+  integration-tests:
+    needs: unit-tests
+    if: startsWith(github.ref, 'refs/tags/') && vars.AZURE_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' && vars.AZURE_SUBSCRIPTION_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: integration-${{ github.repository }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    # The azurerm provider requests the GitHub OIDC token itself.
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: opentofu/setup-opentofu@v2.0.2
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+      - run: tofu init -input=false -test-directory=tests/integration
+      - run: tofu test -test-directory=tests/integration
+
+  integration-skipped:
+    needs: unit-tests
+    if: startsWith(github.ref, 'refs/tags/') && !(vars.AZURE_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' && vars.AZURE_SUBSCRIPTION_ID != '')
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Integration tests skipped. Set the repository variables AZURE_CLIENT_ID, AZURE_TENANT_ID and AZURE_SUBSCRIPTION_ID to run them."
+
+  release:
+    needs: [integration-tests, integration-skipped]
+    # One of the two integration jobs is always skipped.
+    if: >-
+      always() && startsWith(github.ref, 'refs/tags/') &&
+      !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') &&
+      contains(needs.*.result, 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: >-
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag
+          --title "$GITHUB_REF_NAME" --notes "Release $GITHUB_REF_NAME of ${GITHUB_REPOSITORY#*/}."
+        env:
+          GH_TOKEN: ${{ github.token }}
