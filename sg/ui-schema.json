@@ -1,0 +1,64 @@
+{
+  "ssh_public_key": {
+    "ui:widget": "textarea",
+    "ui:title": "SSH public key",
+    "ui:description": "SSH public key for the admin user. Password login is disabled and no SSH port is open."
+  },
+  "name_prefix": {
+    "ui:title": "Name prefix",
+    "ui:description": "Prefix for all resource names"
+  },
+  "location": {
+    "ui:title": "Location",
+    "ui:description": "Azure location"
+  },
+  "vm_size": {
+    "ui:title": "VM size",
+    "ui:description": "VM size of the scale set instances. Must support Trusted Launch (Gen2)."
+  },
+  "advanced_settings": {
+    "instance_count": {
+      "ui:title": "Instance count",
+      "ui:description": "Number of scale set instances"
+    },
+    "admin_username": {
+      "ui:title": "Admin username",
+      "ui:description": "Admin user on the instances"
+    },
+    "allowed_http_cidrs": {
+      "ui:title": "Allowed CIDR",
+      "ui:description": "IPv4 CIDRs allowed to reach the Application Gateway. The web app is public by default.",
+      "ui:placeholder": "0.0.0.0/0"
+    },
+    "encryption_at_host_enabled": {
+      "ui:title": "Encryption at host enabled",
+      "ui:description": "Encrypt temp disk and caches on the host. Needs the EncryptionAtHost feature registered in the subscription."
+    },
+    "log_retention_days": {
+      "ui:title": "Log retention days",
+      "ui:description": "Retention of the logs in Log Analytics"
+    },
+    "tags": {
+      "additionalProperties": {
+        "ui:title": "Tag"
+      }
+    },
+    "ui:order": [
+      "show_advanced_settings",
+      "*"
+    ],
+    "ui:title": "Advanced Settings",
+    "ui:description": "Optional settings, most deployments keep the defaults",
+    "vnet_cidr": {
+      "ui:title": "VNet cidr",
+      "ui:description": "Address space of the VNet"
+    }
+  },
+  "ui:order": [
+    "ssh_public_key",
+    "name_prefix",
+    "location",
+    "vm_size",
+    "advanced_settings"
+  ]
+}

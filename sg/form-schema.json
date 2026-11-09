@@ -1,0 +1,243 @@
+{
+  "type": "object",
+  "title": "Azure Web App on VMs (Scale Set + App Gateway)",
+  "required": [
+    "ssh_public_key"
+  ],
+  "properties": {
+    "ssh_public_key": {
+      "type": "string"
+    },
+    "name_prefix": {
+      "type": "string",
+      "default": "demo",
+      "pattern": "^[a-z][a-z0-9-]{1,15}$"
+    },
+    "location": {
+      "type": "string",
+      "default": "germanywestcentral",
+      "enum": [
+        "australiacentral",
+        "australiacentral2",
+        "australiaeast",
+        "australiasoutheast",
+        "austriaeast",
+        "belgiumcentral",
+        "brazilsouth",
+        "brazilsoutheast",
+        "canadacentral",
+        "canadaeast",
+        "centralindia",
+        "centralus",
+        "chilecentral",
+        "denmarkeast",
+        "eastasia",
+        "eastus",
+        "eastus2",
+        "francecentral",
+        "francesouth",
+        "germanynorth",
+        "germanywestcentral",
+        "indonesiacentral",
+        "israelcentral",
+        "italynorth",
+        "japaneast",
+        "japanwest",
+        "jioindiacentral",
+        "jioindiawest",
+        "koreacentral",
+        "koreasouth",
+        "malaysiawest",
+        "mexicocentral",
+        "newzealandnorth",
+        "northcentralus",
+        "northeurope",
+        "norwayeast",
+        "norwaywest",
+        "polandcentral",
+        "qatarcentral",
+        "southafricanorth",
+        "southafricawest",
+        "southcentralus",
+        "southindia",
+        "southeastasia",
+        "spaincentral",
+        "swedencentral",
+        "swedensouth",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "uaecentral",
+        "uaenorth",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westeurope",
+        "westindia",
+        "westus",
+        "westus2",
+        "westus3"
+      ],
+      "enumNames": [
+        "Australia Central (australiacentral)",
+        "Australia Central 2 (australiacentral2)",
+        "Australia East (australiaeast)",
+        "Australia Southeast (australiasoutheast)",
+        "Austria East (austriaeast)",
+        "Belgium Central (belgiumcentral)",
+        "Brazil South (brazilsouth)",
+        "Brazil Southeast (brazilsoutheast)",
+        "Canada Central (canadacentral)",
+        "Canada East (canadaeast)",
+        "Central India (centralindia)",
+        "Central US (centralus)",
+        "Chile Central (chilecentral)",
+        "Denmark East (denmarkeast)",
+        "East Asia (eastasia)",
+        "East US (eastus)",
+        "East US 2 (eastus2)",
+        "France Central (francecentral)",
+        "France South (francesouth)",
+        "Germany North (germanynorth)",
+        "Germany West Central (germanywestcentral)",
+        "Indonesia Central (indonesiacentral)",
+        "Israel Central (israelcentral)",
+        "Italy North (italynorth)",
+        "Japan East (japaneast)",
+        "Japan West (japanwest)",
+        "Jio India Central (jioindiacentral)",
+        "Jio India West (jioindiawest)",
+        "Korea Central (koreacentral)",
+        "Korea South (koreasouth)",
+        "Malaysia West (malaysiawest)",
+        "Mexico Central (mexicocentral)",
+        "New Zealand North (newzealandnorth)",
+        "North Central US (northcentralus)",
+        "North Europe (northeurope)",
+        "Norway East (norwayeast)",
+        "Norway West (norwaywest)",
+        "Poland Central (polandcentral)",
+        "Qatar Central (qatarcentral)",
+        "South Africa North (southafricanorth)",
+        "South Africa West (southafricawest)",
+        "South Central US (southcentralus)",
+        "South India (southindia)",
+        "Southeast Asia (southeastasia)",
+        "Spain Central (spaincentral)",
+        "Sweden Central (swedencentral)",
+        "Sweden South (swedensouth)",
+        "Switzerland North (switzerlandnorth)",
+        "Switzerland West (switzerlandwest)",
+        "UAE Central (uaecentral)",
+        "UAE North (uaenorth)",
+        "UK South (uksouth)",
+        "UK West (ukwest)",
+        "West Central US (westcentralus)",
+        "West Europe (westeurope)",
+        "West India (westindia)",
+        "West US (westus)",
+        "West US 2 (westus2)",
+        "West US 3 (westus3)"
+      ]
+    },
+    "vm_size": {
+      "type": "string",
+      "default": "Standard_B2s_v2",
+      "enum": [
+        "Standard_B2s_v2",
+        "Standard_B4s_v2",
+        "Standard_D2s_v5",
+        "Standard_D4s_v5",
+        "Standard_D2as_v5",
+        "Standard_D4as_v5"
+      ],
+      "enumNames": [
+        "B2s v2 (2 vCPU, 8 GiB)",
+        "B4s v2 (4 vCPU, 16 GiB)",
+        "D2s v5 (2 vCPU, 8 GiB)",
+        "D4s v5 (4 vCPU, 16 GiB)",
+        "D2as v5 (2 vCPU, 8 GiB, AMD)",
+        "D4as v5 (4 vCPU, 16 GiB, AMD)"
+      ]
+    },
+    "advanced_settings": {
+      "type": "object",
+      "properties": {
+        "show_advanced_settings": {
+          "type": "boolean",
+          "title": "Show advanced settings",
+          "default": false
+        }
+      },
+      "dependencies": {
+        "show_advanced_settings": {
+          "oneOf": [
+            {
+              "properties": {
+                "show_advanced_settings": {
+                  "enum": [
+                    false
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "show_advanced_settings": {
+                  "enum": [
+                    true
+                  ]
+                },
+                "vnet_cidr": {
+                  "type": "string",
+                  "default": "10.0.0.0/16"
+                },
+                "admin_username": {
+                  "type": "string",
+                  "default": "azureuser"
+                },
+                "instance_count": {
+                  "default": 1,
+                  "type": "number",
+                  "multipleOf": 1,
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "encryption_at_host_enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "allowed_http_cidrs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": [
+                    "0.0.0.0/0"
+                  ],
+                  "uniqueItems": true
+                },
+                "log_retention_days": {
+                  "type": "number",
+                  "default": 90
+                },
+                "tags": {
+                  "title": "Tags",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Additional tags for all resources",
+                  "default": {}
+                }
+              },
+              "required": [
+                "instance_count"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "dependencies": {}
+}
