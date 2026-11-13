@@ -164,7 +164,6 @@
       "properties": {
         "show_advanced_settings": {
           "type": "boolean",
-          "title": "Show advanced settings",
           "default": false
         }
       },
@@ -178,7 +177,8 @@
                     false
                   ]
                 }
-              }
+              },
+              "required": []
             },
             {
               "properties": {
@@ -236,7 +236,8 @@
             }
           ]
         }
-      }
+      },
+      "required": []
     }
   },
   "dependencies": {}
