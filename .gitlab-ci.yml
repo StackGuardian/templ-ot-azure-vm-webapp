@@ -5,7 +5,7 @@
 #   Integration tests run only when the AZURE_* CI/CD variables are set.
 
 variables:
-  TOFU_VERSION: "1.13.2"
+  TOFU_VERSION: "1.13.9"
   TFLINT_VERSION: "v0.65.0"
   CHECKOV_VERSION: "3.4.3"
   GLAB_VERSION: "v1.127.0"
@@ -96,7 +96,7 @@ unit-tests:
   parallel:
     matrix:
       # Lowest supported version (see required_version) and the current release.
-      - TOFU_VERSION: ["1.9.0", "1.13.2"]
+      - TOFU_VERSION: ["1.9.0", "1.13.9"]
   script:
     - tofu init -backend=false -input=false
     - tofu test -test-directory=tests/unit

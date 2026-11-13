@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 env:
-  TOFU_VERSION: "1.13.2"
+  TOFU_VERSION: "1.13.9"
   TFLINT_VERSION: "v0.65.0"
   CHECKOV_VERSION: "3.4.3"
 
@@ -80,7 +80,7 @@ jobs:
       fail-fast: false
       matrix:
         # Lowest supported version (see required_version) and the current release.
-        tofu_version: ["1.9.0", "1.13.2"]
+        tofu_version: ["1.9.0", "1.13.9"]
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: opentofu/setup-opentofu@v2.0.2
