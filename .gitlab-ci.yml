@@ -5,7 +5,6 @@
 #   Integration tests run only when the AZURE_* CI/CD variables are set.
 
 variables:
-  CHECKOV_VERSION: "3.4.3"
   GLAB_VERSION: "v1.127.0"
 
 workflow:
@@ -83,7 +82,7 @@ checkov:
   extends: .full_checks
   stage: validate
   image:
-    name: bridgecrew/checkov:$CHECKOV_VERSION
+    name: registry.mm-homelab.org/images/ci-checkov:latest
     entrypoint: [""]
   script:
     - checkov --directory . --framework terraform --skip-path tests --compact --quiet
