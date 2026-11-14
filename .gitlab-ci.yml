@@ -6,7 +6,6 @@
 
 variables:
   TOFU_VERSION: "1.13.9"
-  TFLINT_VERSION: "v0.65.0"
   CHECKOV_VERSION: "3.4.3"
   GLAB_VERSION: "v1.127.0"
 
@@ -45,7 +44,7 @@ fmt:
 tflint:
   stage: lint
   image:
-    name: ghcr.io/terraform-linters/tflint:$TFLINT_VERSION
+    name: registry.mm-homelab.org/images/ci-tflint:latest
     entrypoint: [""]
   cache:
     key: tflint-plugins
