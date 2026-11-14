@@ -12,3 +12,7 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+
+# Unit test reports written by the CI job
+unit-tests.json
+junit-*.xml
