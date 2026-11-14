@@ -5,8 +5,6 @@
 #   Integration tests run only when the AZURE_* CI/CD variables are set.
 
 variables:
-  TOFU_VERSION: "1.13.9"
-  TFLINT_VERSION: "v0.65.0"
   GLAB_VERSION: "v1.127.0"
 
 workflow:
@@ -32,7 +30,7 @@ stages:
 
 .tofu:
   image:
-    name: ghcr.io/opentofu/opentofu:$TOFU_VERSION
+    name: registry.mm-homelab.org/images/ci-opentofu:latest
     entrypoint: [""]
 
 fmt:
@@ -44,7 +42,7 @@ fmt:
 tflint:
   stage: lint
   image:
-    name: ghcr.io/terraform-linters/tflint:$TFLINT_VERSION
+    name: registry.mm-homelab.org/images/ci-tflint:latest
     entrypoint: [""]
   cache:
     key: tflint-plugins
@@ -92,10 +90,6 @@ checkov:
 unit-tests:
   extends: [.tofu, .full_checks]
   stage: test
-  parallel:
-    matrix:
-      # Lowest supported version (see required_version) and the current release.
-      - TOFU_VERSION: ["1.9.0", "1.13.9"]
   script:
     - tofu init -backend=false -input=false
     # The JSON output is converted to a JUnit report for the pipeline's Tests tab.
@@ -104,7 +98,7 @@ unit-tests:
       rc=0
       tofu test -test-directory=tests/unit -json > unit-tests.json || rc=$?
       apk add --no-cache python3 > /dev/null
-      python3 ci/tofu-json-to-junit.py unit-tests.json "junit-$TOFU_VERSION.xml" "unit-tests $TOFU_VERSION"
+      python3 ci/tofu-json-to-junit.py unit-tests.json junit-unit-tests.xml unit-tests
       exit "$rc"
   artifacts:
     when: always
